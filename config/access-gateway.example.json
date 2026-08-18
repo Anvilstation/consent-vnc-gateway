@@ -1,0 +1,18 @@
+{
+  "dbus": {
+    "bus": "session",
+    "service": "io.github.consentvnc.Gateway",
+    "objectPath": "/Gateway"
+  },
+  "storage": {
+    "sqlitePath": ""
+  },
+  "consentTimeoutSeconds": 30,
+  "vnc": {
+    "dryRun": true,
+    "executable": "x11vnc",
+    "passwordFile": "/tmp/consent-vnc-gateway.pass",
+    "display": ":0",
+    "credentialDigits": 6
+  }
+}

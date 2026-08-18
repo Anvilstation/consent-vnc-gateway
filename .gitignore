@@ -1,0 +1,12 @@
+build/
+cmake-build-*/
+.idea/
+.vscode/
+*.user
+*.autosave
+*.swp
+*.db
+*.sqlite
+*.sqlite3
+*.log
+runtime/

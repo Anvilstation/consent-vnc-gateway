@@ -1,0 +1,14 @@
+<!DOCTYPE busconfig PUBLIC
+  "-//freedesktop//DTD D-BUS Bus Configuration 1.0//EN"
+  "http://www.freedesktop.org/standards/dbus/1.0/busconfig.dtd">
+<busconfig>
+  <policy group="REPLACE_WITH_GATEWAY_GROUP">
+    <allow own="io.github.consentvnc.Gateway"/>
+    <allow send_destination="io.github.consentvnc.Gateway"/>
+  </policy>
+
+  <policy context="default">
+    <deny own="io.github.consentvnc.Gateway"/>
+    <deny send_destination="io.github.consentvnc.Gateway"/>
+  </policy>
+</busconfig>
