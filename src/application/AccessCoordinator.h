@@ -28,6 +28,7 @@ private:
     SessionRepository &m_sessions;
     VncController &m_vnc;
     HostIdentityProvider &m_identity;
+    bool m_promptOpen = false;
     QHash<QString, ConnectionRequest> m_pending;
     QHash<QString, QString> m_activeSessionIds;
 };

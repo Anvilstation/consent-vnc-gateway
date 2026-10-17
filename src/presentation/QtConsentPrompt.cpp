@@ -46,8 +46,8 @@ bool QtConsentPrompt::ask(const ConnectionRequest &request)
 void QtConsentPrompt::showCredential(const QString &credential)
 {
     QMessageBox::information(nullptr,
-                             QObject::tr("One-time credential"),
-                             QObject::tr("Share this one-time VNC credential through an approved "
+                             QObject::tr("VNC credential"),
+                             QObject::tr("Share this VNC credential through an approved "
                                          "channel:<br><br><b>%1</b>")
                                  .arg(credential.toHtmlEscaped()));
 }

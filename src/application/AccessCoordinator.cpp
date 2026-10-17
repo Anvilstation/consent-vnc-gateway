@@ -1,6 +1,7 @@
 #include "application/AccessCoordinator.h"
 
 #include <QDebug>
+#include <QScopedValueRollback>
 #include <QUuid>
 
 namespace gateway {
@@ -33,6 +34,11 @@ int AccessCoordinator::requestAccess(const QString &peerAddress, const QString &
         return -1;
     if (m_activeSessionIds.contains(normalizedAddress) || m_pending.contains(normalizedAddress))
         return 1;
+    // x11vnc has one shared credential: a second approval would invalidate the first.
+    // The guard also covers the nested event loop used by the modal consent prompt.
+    if (m_promptOpen || !m_pending.isEmpty() || !m_activeSessionIds.isEmpty())
+        return 0;
+    QScopedValueRollback<bool> promptOpen(m_promptOpen, true);
     if (!m_prompt.ask(request))
         return 0;
 
@@ -74,6 +80,8 @@ int AccessCoordinator::confirmConnected(const QString &peerAddress)
 int AccessCoordinator::connectionRejected(const QString &peerAddress)
 {
     const QString normalizedAddress = peerAddress.trimmed();
+    if (!m_pending.contains(normalizedAddress))
+        return 0;
     m_pending.remove(normalizedAddress);
     QString error;
     if (m_vnc.rotateCredential(&error).isEmpty()) {
@@ -86,18 +94,21 @@ int AccessCoordinator::connectionRejected(const QString &peerAddress)
 int AccessCoordinator::connectionClosed(const QString &peerAddress)
 {
     const QString normalizedAddress = peerAddress.trimmed();
-    const QString sessionId = m_activeSessionIds.take(normalizedAddress);
-    m_pending.remove(normalizedAddress);
+    const QString sessionId = m_activeSessionIds.value(normalizedAddress);
     if (sessionId.isEmpty())
-        return 0;
+        return connectionRejected(normalizedAddress);
 
     QString error;
-    if (!m_sessions.markDisconnected(sessionId, QDateTime::currentDateTimeUtc(), &error)) {
+    const bool recorded = m_sessions.markDisconnected(
+        sessionId, QDateTime::currentDateTimeUtc(), &error);
+    if (!recorded)
         qWarning() << "Could not close session:" << error;
-        return -2;
-    }
-    if (m_vnc.rotateCredential(&error).isEmpty())
+    const bool invalidated = !m_vnc.rotateCredential(&error).isEmpty();
+    if (!invalidated)
         qWarning() << "Could not rotate VNC credential after close:" << error;
+    if (!recorded || !invalidated)
+        return -2;
+    m_activeSessionIds.remove(normalizedAddress);
     return 1;
 }
 
